@@ -71,12 +71,40 @@ export class ArgumentQueue {
     private pop0(rewind: boolean): Argument {
         const start: number = this.head;
         let c: number;
+        let inQuotes = false;
+        let quoteChar = 0;
+        let quoteStart = -1;
+
         while (this.head < this.data.length) {
             c = this.data.charCodeAt(this.head);
-            if (c === 58) break; // : (colon)
+
+            // Handle quotes (single or double)
+            if (c === 39 || c === 34) { // ' or "
+                if (!inQuotes) {
+                    inQuotes = true;
+                    quoteChar = c;
+                    quoteStart = this.head;
+                } else if (c === quoteChar) {
+                    inQuotes = false;
+                }
+            }
+
+            // Only break on colon if not inside quotes
+            if (c === 58 && !inQuotes) break; // : (colon)
+
             this.head++;
         }
-        const dat = this.data.substring(start, this.head);
+
+        let dat = this.data.substring(start, this.head);
+
+        // Strip quotes if the entire argument is quoted
+        if (quoteStart === start && quoteStart >= 0 && !inQuotes) {
+            const quoteEnd = this.head - 1;
+            if (this.data.charCodeAt(quoteEnd) === quoteChar) {
+                dat = this.data.substring(start + 1, quoteEnd);
+            }
+        }
+
         if (rewind) {
             this.head = start;
         } else {
