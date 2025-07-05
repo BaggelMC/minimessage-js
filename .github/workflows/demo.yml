@@ -54,7 +54,7 @@ jobs:
         rm -rf types tests src node_modules buildSrc packages/translations
 
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v3
       with:
         path: './'
 
@@ -67,4 +67,4 @@ jobs:
     steps:
     - name: Deploy
       id: deployment
-      uses: actions/deploy-pages@v2
+      uses: actions/deploy-pages@v4
