@@ -27,4 +27,15 @@ export namespace HexUtil {
         return (hexCharCode2Nibble(hex.charCodeAt(offset)) << 4) | hexCharCode2Nibble(hex.charCodeAt(offset + 1));
     }
 
+    // Converts a hex color string like "#RRGGBB" into an RGB object
+    export function hexToRgb(hex: string): { r: number, g: number, b: number } {
+        // Remove '#'
+        if (hex.charCodeAt(0) === 35) hex = hex.substring(1);
+
+        const r = hex2Octet(hex, 0);
+        const g = hex2Octet(hex, 2);
+        const b = hex2Octet(hex, 4);
+
+        return { r, g, b };
+    }
 }
