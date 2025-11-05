@@ -1,7 +1,7 @@
 {
   "name": "minimessage-js",
   "description": "Lenient MiniMessage parser and HTML serializer made in TypeScript",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "wasabithumbs",
   "contributors": ["DerMistkaefer"],
   "license": "Apache-2.0",
