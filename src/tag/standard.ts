@@ -10,6 +10,7 @@ import {InsertionTagResolver} from "./impl/insertion";
 import {KeybindTagResolver} from "./impl/keybind";
 import {NewlineTagResolver} from "./impl/newline";
 import {RainbowTagResolver} from "./impl/rainbow";
+import {PrideTagResolver} from "./impl/pride";
 import {ResetTagResolver} from "./impl/reset";
 import {ScoreTagResolver} from "./impl/score";
 import {SelectorTagResolver} from "./impl/selector";
@@ -69,6 +70,10 @@ export const StandardTags = new class {
         return RainbowTagResolver.INSTANCE;
     }
 
+    pride(): TagResolver {
+        return PrideTagResolver.INSTANCE;
+    }
+
     reset(): TagResolver {
         return ResetTagResolver.INSTANCE;
     }
@@ -109,6 +114,7 @@ export const StandardTags = new class {
                 // nbt is TODO
                 this.newline(),
                 this.rainbow(),
+                this.pride(),
                 this.reset(),
                 this.score(),
                 this.selector(),
@@ -133,6 +139,7 @@ export const StandardTags = new class {
                 // nbt is TODO
                 this.newline(),
                 this.rainbow(),
+                this.pride(),
                 this.reset(),
                 // score is excluded because we can't currently HTML-ify that info
                 // selector is excluded because we can't currently HTML-ify that info
