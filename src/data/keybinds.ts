@@ -1,3 +1,9 @@
+// I could dynamically fetch some of this info from the options.txt
+// However some keys like "	key.keyboard.p" are not translatable keys
+// And I would need to include special logic for those.
+// I do not trust Mojang to be consistent here,
+// so I'd just put these in here by hand
+
 export const KEYBIND_TO_TRANSLATABLE: Record<string, string> = {
     "key.jump": "key.keyboard.space",
     "key.sneak": "key.keyboard.left.shift",
@@ -41,6 +47,6 @@ export const KEYBIND_TO_LITERAL: Record<string, string> = {
     "key.chat": "T",
     "key.socialInteractions": "P",
     "key.advancements": "L",
-    "key.command": "-",
-    "key.spectatorOutlines": "-",
+    "key.command": "-", // "key.keyboard.unknown" resolves to "-"
+    "key.spectatorOutlines": "-", // "key.keyboard.unknown" resolves to "-"
 };
