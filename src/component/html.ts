@@ -3,6 +3,7 @@ import {StringBuilder} from "../util/string";
 import {ColorTagResolver} from "../tag/impl/color";
 import {bindObfuscatedText} from "../font/obf";
 import {MiniMessageInstance, CreateElementFn} from "../spec";
+import { renderDefaultKeybindHTML } from "../util/renderDefaultKeybind";
 
 // RegExp used to identify lang placeholders
 const LANG_PLACEHOLDER_REGEX = /%(%|(?:(\d+)\$)?s)/g;
@@ -81,6 +82,15 @@ function componentToHTML0(
     if (!!text) {
         el.innerText = text;
         sb.appendString(text);
+    }
+
+    // Render keybinds
+    const keybind = component.getProperty("keybind");
+    if (keybind) {
+        const display = renderDefaultKeybindHTML(keybind, context);
+        el.innerText = display;
+        sb.appendString(display);
+        el.classList?.add("mm-keybind");
     }
 
     // START Translatables

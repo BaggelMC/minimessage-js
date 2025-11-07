@@ -135,7 +135,7 @@ export const StandardTags = new class {
                 this.gradient(),
                 this.hoverEvent(),
                 this.insertion(),
-                // keybind is excluded because we can't currently HTML-ify that info
+                this.keybind(),
                 // nbt is TODO
                 this.newline(),
                 this.rainbow(),
