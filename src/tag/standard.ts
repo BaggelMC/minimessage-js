@@ -1,4 +1,4 @@
-import {TagResolver} from "./spec";
+import {Tag, TagResolver} from "./spec";
 import {ClickEventTagResolver} from "./impl/clickEvent";
 import {ColorTagResolver} from "./impl/color";
 import {DecorationTagResolver} from "./impl/decoration";
@@ -16,6 +16,7 @@ import {ScoreTagResolver} from "./impl/score";
 import {SelectorTagResolver} from "./impl/selector";
 import {TransitionTagResolver} from "./impl/transition";
 import {TranslatableTagResolver} from "./impl/translatable";
+import { HeadTagResolver } from "./impl/head";
 
 /**
  * Factory for tag resolvers included with MiniMessage. ``defaults()`` contains all tags that can be parsed and written
@@ -94,6 +95,10 @@ export const StandardTags = new class {
         return TranslatableTagResolver.INSTANCE;
     }
 
+    head(): TagResolver {
+        return HeadTagResolver.INSTANCE;
+    }
+
     //
 
     builder(): TagResolver.Builder {
@@ -119,8 +124,9 @@ export const StandardTags = new class {
                 this.score(),
                 this.selector(),
                 this.transition(),
-                this.translatable()
+                this.translatable(),
                 // translatableFallback is TODO
+                this.head(),
             )
             .build();
     }
@@ -146,6 +152,7 @@ export const StandardTags = new class {
                 this.transition(),
                 this.translatable(),
                 // translatableFallback is TODO
+                this.head(),
             )
             .build();
     }

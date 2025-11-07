@@ -64,6 +64,10 @@ export type IComponent = {
     storage?: string,
     interpret?: boolean,
     separator?: string
+
+    // Head
+    player?: string | { id: number[] } | { texture: string },
+    hat?: boolean
 };
 
 // Computes the length of a Component primitive, taking into account its own text & the text of its children.

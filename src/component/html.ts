@@ -4,6 +4,7 @@ import {ColorTagResolver} from "../tag/impl/color";
 import {bindObfuscatedText} from "../font/obf";
 import {MiniMessageInstance, CreateElementFn} from "../spec";
 import { renderDefaultKeybindHTML } from "../util/renderDefaultKeybind";
+import { getHeadElement, intArrayToUUID } from "../util/renderHead";
 
 // RegExp used to identify lang placeholders
 const LANG_PLACEHOLDER_REGEX = /%(%|(?:(\d+)\$)?s)/g;
@@ -143,6 +144,27 @@ function componentToHTML0(
             }
         }
     }
+
+    const head = component.getProperty("player");
+    if (head) {
+        const hat = component.getProperty("hat") ?? true;
+        let identifier: string | undefined;
+
+        if (typeof head === "string") {
+            identifier = head;
+        } else if ("id" in head) {
+            identifier = intArrayToUUID(head.id);
+        } else if ("texture" in head) {
+            identifier = head.texture;
+        }
+
+        if (identifier) {
+            const headEl = getHeadElement(identifier, hat);
+            el.classList?.add("mm-head");
+            el.appendChild(headEl);
+        }
+    }
+
 
     // Add closing tag
     sb.appendString("</span>");
