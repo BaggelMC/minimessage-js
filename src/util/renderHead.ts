@@ -42,7 +42,6 @@ export function getHeadElement(identifier: string, showHat = true): HTMLImageEle
   img.style.width = "1em";
   img.style.height = "1em";
   img.style.imageRendering = "pixelated";
-  img.style.verticalAlign = "middle";
 
   if (uuidRegex.test(identifier)) {
     renderUUIDHead(identifier, img, showHat);

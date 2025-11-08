@@ -139,11 +139,26 @@ function componentToHTML0(
                 el.appendChild(sub);
                 sb.appendString(child);
             } else {
-                // Recursion 👻
-                componentToHTML0(context, new Component(child), sb, doOutput, el, createElementFn);
+                const childComponent = new Component(child);
+
+                // Inherit color
+                if (component.getProperty("color") && !childComponent.getProperty("color")) {
+                    childComponent.setProperty("color", component.getProperty("color"));
+                }
+
+                // Inherit decorations
+                for (const deco of ["bold", "italic", "underlined", "strikethrough", "obfuscated"] as (keyof IComponent)[]) {
+                    if (component.getProperty(deco) && !childComponent.getProperty(deco)) {
+                        childComponent.setProperty(deco, component.getProperty(deco));
+                    }
+                }
+
+
+                componentToHTML0(context, childComponent, sb, doOutput, el, createElementFn);
             }
+
         }
-    }
+    } 
 
     const head = component.getProperty("player");
     if (head) {
@@ -161,6 +176,26 @@ function componentToHTML0(
         if (identifier) {
             const headEl = getHeadElement(identifier, hat);
             el.classList?.add("mm-head");
+
+            const color = component.getProperty("color");
+            if (color) {
+                const mappedColor = ColorTagResolver.mapColor(color);
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = (headEl as HTMLImageElement).src;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext("2d")!;
+                    ctx.drawImage(img, 0, 0);
+                    ctx.globalCompositeOperation = "multiply";
+                    ctx.fillStyle = mappedColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    (headEl as HTMLImageElement).src = canvas.toDataURL();
+                };
+            }
+
             el.appendChild(headEl);
         }
     }
