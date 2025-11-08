@@ -58,7 +58,8 @@ export function getHeadElement(identifier: string, showHat = true): HTMLImageEle
 }
 
 function renderUUIDHead(uuid: string, img: HTMLImageElement, showHat: boolean) {
-  const existing = uuidCache.get(uuid);
+  const key = getCacheKey(uuid, showHat);
+  const existing = uuidCache.get(key);
 
   if (existing && Date.now() - existing.timestamp < CACHE_EXPIRY_MS) {
     if (existing.state === "cached") img.src = existing.file;
@@ -67,29 +68,29 @@ function renderUUIDHead(uuid: string, img: HTMLImageElement, showHat: boolean) {
     return;
   }
 
-  uuidCache.set(uuid, { state: "loading", file: spinnerAnimation, timestamp: Date.now(), element: img });
+  uuidCache.set(key, { state: "loading", file: spinnerAnimation, timestamp: Date.now(), element: img });
   img.src = spinnerAnimation;
 
   const url = `https://crafatar.com/avatars/${uuid}?size=16${showHat ? "&overlay=true" : ""}`;
 
-  if (fetchTimers.has(uuid)) clearTimeout(fetchTimers.get(uuid));
+  if (fetchTimers.has(key)) clearTimeout(fetchTimers.get(key));
   const timer = window.setTimeout(() => {
     queueRequest(async () => {
       try {
         const res = await fetchWithRetry(url);
         const blob = await res.blob();
         const localUrl = URL.createObjectURL(blob);
-        uuidCache.set(uuid, { state: "cached", file: localUrl, timestamp: Date.now() });
+        uuidCache.set(key, { state: "cached", file: localUrl, timestamp: Date.now() });
         img.src = localUrl;
-        console.info(`[MiniMessage Renderer] Cached skin for ${uuid} (thanks Crafatar.com!)`);
+        console.info(`[MiniMessage Renderer] Cached skin for ${uuid} (hat: ${showHat})`);
       } catch (e) {
-        console.warn(`[MiniMessage Renderer] Failed to load skin for ${uuid}`, e);
-        uuidCache.set(uuid, { state: "error", file: errorSprite, timestamp: Date.now() });
+        console.warn(`[MiniMessage Renderer] Failed to load skin for ${uuid} (hat: ${showHat})`, e);
+        uuidCache.set(key, { state: "error", file: errorSprite, timestamp: Date.now() });
         img.src = errorSprite;
       }
     });
   }, 300);
-  fetchTimers.set(uuid, timer);
+  fetchTimers.set(key, timer);
 }
 
 function renderUsernameHead(username: string, img: HTMLImageElement, showHat: boolean) {
@@ -123,6 +124,10 @@ function renderUsernameHead(username: string, img: HTMLImageElement, showHat: bo
     });
   }, 300);
   fetchTimers.set(username, timer);
+}
+
+function getCacheKey(uuid: string, showHat: boolean): string {
+  return `${uuid}:${showHat ? "hat" : "nohat"}`;
 }
 
 async function fetchWithRetry(url: string, retries = 2, delay = 300): Promise<Response> {

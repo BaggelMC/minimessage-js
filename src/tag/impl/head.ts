@@ -13,12 +13,13 @@ export class HeadTagResolver implements TagResolver {
     resolve(name: string, args: ArgumentQueue, ctx: TagResolverContext): Tag | null {
         const arg = args.pop();
         if (!arg) return null;
+        const arg2 = args.peek()
 
-        const raw = arg.value.trim();
-        const parts = raw.split(/[|:]/);
-
-        const playerIdentifier = parts[0] ?? "";
-        const showOuterLayer = parts[1] ? parts[1].toLowerCase() !== "false" : true;
+        const playerIdentifier = arg.value.trim();
+        let showOuterLayer = true;
+        if (arg2) {
+            showOuterLayer = arg2.value.trim() ? arg2.value.trim().toLowerCase() !== "false" : true;
+        }
 
         const component = Component.empty();
         component.setProperty("hat", showOuterLayer);
@@ -35,7 +36,6 @@ export class HeadTagResolver implements TagResolver {
 
         return Tag.insert(component);
     }
-
 }
 
 /** Converts UUID string -> 4x signed 32-bit ints for Minecraft internal representation */
