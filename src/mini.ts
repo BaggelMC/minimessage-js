@@ -5,6 +5,7 @@ import {Node} from "./mini/tree";
 import {DomHTMLWriter} from "./html/writer/dom";
 import {TranslationData, Translations} from "./i18n";
 import {MiniMessageBuilderImpl} from "./mini/impl";
+import { ResourcePacks } from "./resourcePacks";
 
 //
 
@@ -34,6 +35,8 @@ export interface MiniMessage extends ComponentSerializer<Component, Component, s
 
     translations(): Translations;
 
+    resourcePacks(): ResourcePacks;
+
 }
 
 export namespace MiniMessage {
@@ -53,6 +56,8 @@ export namespace MiniMessage {
         postProcessor(postProcessor: (component: Component) => Component): this;
 
         translations(translations: Translations | TranslationData): this;
+
+        resourcePacks(packs: ResourcePacks): this;
 
         build(): MiniMessage;
 

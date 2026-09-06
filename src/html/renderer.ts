@@ -9,6 +9,8 @@ import {TranslatableComponent} from "../text/component/translatable";
 import {SelectorComponent} from "../text/component/selector";
 import {KeybindComponent} from "../text/component/keybind";
 import {ObjectComponent} from "../text/component/object";
+import {SpriteObjectContents} from "../text/object/sprite";
+import {ResourcePacks} from "../resourcePacks";
 import {DomEffects} from "./effects";
 import {assertNever} from "../util/assertions";
 import {KEYBIND_TO_LITERAL, KEYBIND_TO_TRANSLATABLE} from "../data/defaultKeybinds";
@@ -90,10 +92,12 @@ export class HtmlComponentRenderer extends AbstractComponentRenderer<HtmlWriter>
     //
 
     private readonly _translations: Translations;
+    private readonly _resourcePacks: ResourcePacks;
     
-    constructor(translations: Translations) {
+    constructor(translations: Translations, resourcePacks: ResourcePacks) {
         super();
         this._translations = translations;
+        this._resourcePacks = resourcePacks;
     }
 
     //
@@ -139,6 +143,7 @@ export class HtmlComponentRenderer extends AbstractComponentRenderer<HtmlWriter>
                 break;
             case "sprite":
                 DomEffects.writeProperty(writer, "misc", component);
+                this._writeSprite(contents, writer);
                 break;
             default:
                 assertNever(contentsType);
@@ -160,6 +165,36 @@ export class HtmlComponentRenderer extends AbstractComponentRenderer<HtmlWriter>
         DomEffects.writeProperty(writer, "misc", component);
         this._close(component, writer);
         return component;
+    }
+
+    private _writeSprite(contents: SpriteObjectContents, writer: HtmlWriter): void {
+        const atlas = contents.atlas();
+        const sprite = contents.sprite();
+
+        const info = this._resourcePacks.resolveSprite(
+            atlas.namespace(), atlas.value(),
+            sprite.namespace(), sprite.value()
+        );
+
+        if (info === null) {
+            writer.style(HtmlStyle.missingSprite());
+            writer.property("data-mc-sprite-missing", sprite.asString());
+            return;
+        }
+
+        if (info.animation && info.animation.interpolate) {
+            writer.style(HtmlStyle.spriteContainer());
+            DomEffects.writeProperty(writer, "sprite-interp", {
+                url: info.url,
+                frameWidth: info.animation.frameWidth,
+                frameHeight: info.animation.frameHeight,
+                frames: info.animation.frames.map((f) => ({ row: f.row, durationMs: f.durationMs })),
+                durationMs: info.animation.durationMs
+            });
+        } else {
+            writer.style(HtmlStyle.sprite(info.url, info.animation));
+            DomEffects.writeProperty(writer, "sprite-tint", { url: info.url });
+        }
     }
 
     private _open(component: Component, writer: HtmlWriter): void {
@@ -226,13 +261,14 @@ export class HtmlComponentRenderer extends AbstractComponentRenderer<HtmlWriter>
 
 export namespace HtmlComponentRenderer {
 
-    const INSTANCE = new HtmlComponentRenderer(Translations.empty());
+    const INSTANCE = new HtmlComponentRenderer(Translations.empty(), ResourcePacks.empty());
 
     export function renderer(
-        translations: Translations = Translations.empty()
+        translations: Translations = Translations.empty(),
+        resourcePacks: ResourcePacks = ResourcePacks.empty()
     ): HtmlComponentRenderer {
         if (arguments.length === 0) return INSTANCE;
-        return new HtmlComponentRenderer(translations);
+        return new HtmlComponentRenderer(translations, resourcePacks);
     }
-    
+
 }

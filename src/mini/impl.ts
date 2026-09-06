@@ -11,6 +11,7 @@ import {Node} from "./tree";
 import {HtmlComponentRenderer} from "../html/renderer";
 import {HtmlWriter} from "../html/writer";
 import {MiniMessageSerializer} from "./serializer";
+import {ResourcePacks} from "../resourcePacks";
 
 //
 
@@ -25,7 +26,8 @@ export class MiniMessageImpl implements MiniMessage {
         readonly _debugOutput: ((x: string) => void) | null,
         readonly _preProcessor: ((x: string) => string),
         readonly _postProcessor: ((x: Component) => Component),
-        readonly _translations: Translations
+        readonly _translations: Translations,
+        readonly _resourcePacks: ResourcePacks
     ) {
         this._parser = new MiniMessageParser(tagResolver);
     }
@@ -42,6 +44,10 @@ export class MiniMessageImpl implements MiniMessage {
 
     translations(): Translations {
         return this._translations;
+    }
+
+    resourcePacks(): ResourcePacks {
+        return this._resourcePacks;
     }
 
     deserialize(input: string, ...resolvers: TagResolver[]): Component {
@@ -65,7 +71,7 @@ export class MiniMessageImpl implements MiniMessage {
     }
 
     toHTML(component: Component, target?: ParentNode, elementFactory?: DomHTMLWriter.ElementFactory): string {
-        const renderer = HtmlComponentRenderer.renderer(this._translations);
+        const renderer = HtmlComponentRenderer.renderer(this._translations, this._resourcePacks);
 
         if (target) {
             const writer = HtmlWriter.dom(target, elementFactory);
@@ -111,6 +117,7 @@ export class MiniMessageBuilderImpl implements MiniMessage.Builder {
     private _preProcessor: ((x: string) => string) = ((x) => x);
     private _postProcessor: ((x: Component) => Component) = ((x) => x.compact());
     private _translations: Translations = Translations.empty();
+    private _resourcePacks: ResourcePacks = ResourcePacks.empty();
 
     constructor(serializer?: MiniMessageImpl) {
         if (serializer) {
@@ -120,6 +127,7 @@ export class MiniMessageBuilderImpl implements MiniMessage.Builder {
             this._preProcessor = serializer._preProcessor;
             this._postProcessor = serializer._postProcessor;
             this._translations = serializer._translations;
+            this._resourcePacks = serializer._resourcePacks;
         }
     }
 
@@ -170,6 +178,12 @@ export class MiniMessageBuilderImpl implements MiniMessage.Builder {
         return this;
     }
 
+    resourcePacks(packs: ResourcePacks): this {
+        assertReal(packs, "packs");
+        this._resourcePacks = packs;
+        return this;
+    }
+
     build(): MiniMessage {
         return new MiniMessageImpl(
             this._tagResolver,
@@ -177,7 +191,8 @@ export class MiniMessageBuilderImpl implements MiniMessage.Builder {
             this._debug,
             this._preProcessor,
             this._postProcessor,
-            this._translations
+            this._translations,
+            this._resourcePacks
         );
     }
 

@@ -5,6 +5,8 @@ import {PlayerHeadDomEffect} from "./effects/playerHead";
 import {ShadowDomEffect} from "./effects/shadow";
 import {Character} from "../util/char";
 import {MiscDomEffect} from "./effects/misc";
+import {SpriteTintDomEffect} from "./effects/sprite";
+import {SpriteAnimationDomEffect} from "./effects/spriteAnimation";
 
 //
 
@@ -23,6 +25,8 @@ export type DomEffectMap = {
     [PlayerHeadDomEffect.TOKEN]: PlayerHeadDomEffect,
     [ShadowDomEffect.TOKEN]: ShadowDomEffect,
     [MiscDomEffect.TOKEN]: MiscDomEffect,
+    [SpriteTintDomEffect.TOKEN]: SpriteTintDomEffect,
+    [SpriteAnimationDomEffect.TOKEN]: SpriteAnimationDomEffect,
 };
 
 //
@@ -36,6 +40,8 @@ export namespace DomEffects {
         [PlayerHeadDomEffect.TOKEN]: PlayerHeadDomEffect.INSTANCE,
         [ShadowDomEffect.TOKEN]: ShadowDomEffect.INSTANCE,
         [MiscDomEffect.TOKEN]: MiscDomEffect.INSTANCE,
+        [SpriteTintDomEffect.TOKEN]: SpriteTintDomEffect.INSTANCE,
+        [SpriteAnimationDomEffect.TOKEN]: SpriteAnimationDomEffect.INSTANCE,
     };
 
     export function writeProperty<K extends keyof DomEffectMap>(

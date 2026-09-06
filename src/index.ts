@@ -39,3 +39,7 @@ export {
     TagResolver,
     StandardTags
 } from "./mini";
+
+export {
+    ResourcePacks
+} from "./resourcePacks";
