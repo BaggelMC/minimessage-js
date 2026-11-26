@@ -121,6 +121,17 @@ test("translations in rendered HTML", () => {
     expect(element.innerText).toBe("made with love by Xavier Pedraza!");
 });
 
+test("translatable keeps its style and children in rendered HTML", () => {
+    const m = MiniMessage.builder().translations({ "library.author": "Xavier %s" }).strict(false).build();
+
+    const component = m.deserialize("<lang:library.author:Pedraza> and <red>more");
+    const element = renderToDom(m, component);
+    expect(element.innerText).toBe("Xavier Pedraza and more");
+
+    const styled = m.deserialize("<hover:show_text:'tip'><lang:library.author:Pedraza></hover>");
+    expect(m.toHTML(styled)).toContain("data-mc-tooltip");
+});
+
 test("tricky", () => {
     const component = mini.deserialize(`<rainbow>ra<i>i</i>n<b>b</b>ow</rainbow>`);
     const text = PlainTextComponentSerializer.plainText().serialize(component);

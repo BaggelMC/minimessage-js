@@ -112,9 +112,11 @@ export class HtmlComponentRenderer extends AbstractComponentRenderer<HtmlWriter>
     }
 
     protected renderTranslatable(component: TranslatableComponent, writer: HtmlWriter): Component {
+        this._open(component, writer);
         const translated = this._translations.translate(component.key(), component.arguments());
         this.render(translated, writer);
-        return translated;
+        this._close(component, writer);
+        return component;
     }
 
     protected renderSelector(component: SelectorComponent, writer: HtmlWriter): Component {

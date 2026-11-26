@@ -393,6 +393,12 @@ class ResourcePacksImpl implements ResourcePacks {
         return moveMap(map, 1);
     }
 
+    atlasSprites(atlas: Key): readonly Key[] | null {
+        const map = this._atlases.get(atlas);
+        if (!map) return null;
+        return moveMap(map, 0);
+    }
+
     sprite(key: Key, atlas?: Key | null): ResourcePacks.Sprite | null {
         const texture = this._texture(key, atlas);
         if (!texture) return null;
@@ -458,30 +464,35 @@ function resolveAtlasIndex(namespace: string, json: AtlasJson, textures: KeyMap<
  * input element, that `File` may be passed as-is. Crucially, doing it this way means that the entire file does not
  * necessarily need to be loaded into memory. You may also use a `URL` or `string` representing a URL for a similar
  * effect, or simply pass in-memory `ArrayBuffer`s or `TypedArray`s.
+ *
+ * Sources are layered like the resource pack list in game: textures from later sources replace those from earlier
+ * ones, and atlas definitions are merged (the sources of each atlas are appended in order).
  */
 export default async function loadResourcePacks(...sources: ResourcePacks.Source[]): Promise<ResourcePacks> {
-    // Tables
-    const textures = new KeyMap<Texture>();
-    const rawAtlases = new KeyMap<AtlasJson>();
+    type Layer = { textures: [Key, Texture][]; atlases: [Key, AtlasJson][] };
+    const layers: Layer[] = sources.map(() => ({ textures: [], atlases: [] }));
 
-    // Load all ZIPs
     const controller = new AbortController();
     const { signal } = controller;
     let ok: boolean = false;
     try {
         await Promise.all(
-            sources.map((v) =>
+            sources.map((v, layerIndex) =>
                 (async (source: ResourcePacks.Source) => {
-                    const zip = await wrauz(source, {
-                        signal,
-                        filter: (n) => /^assets\/([^\/]+)\/(textures|atlases)\/.*/i.test(n),
-                    });
+                    const layer = layers[layerIndex];
+                    const zip = await wrauz(source, { signal });
 
-                    for (const nse of zip.list("assets/")) {
-                        if (!nse.name.endsWith("/")) continue;
-                        const namespace = nse.name.substring(7, nse.name.length - 1);
-                        const texturesPrefix = nse.name + "textures/";
-                        const atlasesPrefix = nse.name + "atlases/";
+                    // Derive namespaces from entry paths because many ZIPs have no directory entries
+                    const namespaces = new Set<string>();
+                    for (const e of zip) {
+                        const match = /^assets\/([^\/]+)\//.exec(e.name);
+                        if (match) namespaces.add(match[1]);
+                    }
+
+                    for (const namespace of namespaces) {
+                        const nsPrefix = `assets/${namespace}/`;
+                        const texturesPrefix = nsPrefix + "textures/";
+                        const atlasesPrefix = nsPrefix + "atlases/";
 
                         for (const entry of zip.list(texturesPrefix, true)) {
                             if (!entry.name.endsWith(".png")) continue;
@@ -498,7 +509,7 @@ export default async function loadResourcePacks(...sources: ResourcePacks.Source
 
                             if (signal.aborted) return;
                             const texture = new Texture(zip, entry, meta);
-                            textures.put(Key.key(namespace, path), texture);
+                            layer.textures.push([Key.key(namespace, path), texture]);
                         }
 
                         for (const entry of zip.list(atlasesPrefix, true)) {
@@ -509,7 +520,7 @@ export default async function loadResourcePacks(...sources: ResourcePacks.Source
                                 data = JSON.parse(await zip.read(entry, "utf8"));
                             } catch (ignored) {}
                             if (signal.aborted) return;
-                            rawAtlases.put(Key.key(namespace, path), data as AtlasJson);
+                            if (data) layer.atlases.push([Key.key(namespace, path), data as AtlasJson]);
                         }
                     }
                 })(v),
@@ -518,6 +529,19 @@ export default async function loadResourcePacks(...sources: ResourcePacks.Source
         ok = true;
     } finally {
         if (!ok) controller.abort();
+    }
+
+    const textures = new KeyMap<Texture>();
+    const rawAtlases = new KeyMap<AtlasJson>();
+    for (const layer of layers) {
+        for (const [key, texture] of layer.textures) textures.put(key, texture);
+        for (const [key, json] of layer.atlases) {
+            const existing = rawAtlases.get(key);
+            const merged: AtlasJson = existing
+                ? { sources: [...(existing.sources ?? []), ...(json.sources ?? [])] }
+                : { sources: [...(json.sources ?? [])] };
+            rawAtlases.put(key, merged);
+        }
     }
 
     // Resolve the atlas

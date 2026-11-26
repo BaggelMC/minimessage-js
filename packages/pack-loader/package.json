@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build-umd": "bun run build-umd.ts",
     "prepare": "bun run build"
   },
   "dependencies": {

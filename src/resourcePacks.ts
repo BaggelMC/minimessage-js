@@ -11,7 +11,17 @@ export interface ResourcePacks {
 
     readonly atlases: readonly Key[];
 
+    /**
+     * The textures backing the sprites of an atlas, or null if the atlas is unknown.
+     */
     atlasTextures(atlas: Key): readonly Key[] | null;
+
+    /**
+     * The sprite names of an atlas (as used in `<sprite:atlas:name>`), or null if the atlas is unknown. These can
+     * differ from the texture keys, e.g. sprite `hud/heart/full` in the `gui` atlas is texture
+     * `gui/sprites/hud/heart/full`.
+     */
+    atlasSprites(atlas: Key): readonly Key[] | null;
 
     sprite(key: Key, atlas?: Key | null): ResourcePacks.Sprite | null;
 }
@@ -21,6 +31,9 @@ const EMPTY = new (class implements ResourcePacks {
     textures = EMPTY_ARRAY;
     atlases = EMPTY_ARRAY;
     atlasTextures() {
+        return null;
+    }
+    atlasSprites() {
         return null;
     }
     sprite() {

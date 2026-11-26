@@ -4,11 +4,12 @@ import wrauz from "wrauz";
 //
 
 const USER_AGENT = `minimessage-js; xpedraza542@gmail.com`;
-const ACCEPT_JSON = `"application/json;charset=UTF-8;q=1, */*;q=0.8"`;
+const ACCEPT_JSON = `application/json;charset=UTF-8;q=1, */*;q=0.8`;
 const ACCEPT_TEXT = `text/plain;charset=UTF-8;q=1, */*;q=0.8`;
 
 function makeHeaders(accept) {
-    const ret = { "User-Agent": USER_AGENT };
+    // Browsers either drop a custom User-Agent or preflight it (which Mojang's CDN rejects).
+    const ret = typeof document === "undefined" ? { "User-Agent": USER_AGENT } : {};
     if (!!accept) ret["Accept"] = accept;
     return ret;
 }
