@@ -1,6 +1,4 @@
-
 namespace Flags {
-
     const SYMBOL = Symbol("flags");
     type Flagged = { [S in typeof SYMBOL]: number };
 
@@ -22,18 +20,13 @@ namespace Flags {
             value: flags,
             configurable: false,
             enumerable: false,
-            writable: true
+            writable: true,
         });
     }
-
 }
 
 export namespace ArrayUtil {
-
-    export function immutableView<T>(
-        array: ArrayLike<T>,
-        copyFunc: (value: T) => T = (v) => v
-    ): T[] {
+    export function immutableView<T>(array: ArrayLike<T>, copyFunc: (value: T) => T = (v) => v): T[] {
         let f = Flags.getFlags(array);
         if (f & Flags.FROZEN) return array as unknown as T[];
 
@@ -44,25 +37,8 @@ export namespace ArrayUtil {
         return Object.freeze(ret) as unknown as T[];
     }
 
-    export function insertAtStart<T>(
-        dest: T[],
-        src: T[]
-    ): void {
-        if (src === dest) throw new Error(`'dest' and 'src' must be distinct`);
-
-        const count = src.length;
-        if (count === 0) return;
-
-        const length = dest.length;
-        dest.length = length + count;
-
-        for (let i = (length - 1); i >= 0; i--) {
-            dest[i + count] = dest[i];
-        }
-
-        for (let i = 0; i < count; i++) {
-            dest[i] = src[i];
-        }
+    export function insertAtStart<T>(dest: T[], src: readonly T[]): void {
+        if (Object.is(dest, src)) throw new Error(`'dest' and 'src' must be distinct`);
+        dest.unshift.apply(dest, src as T[]);
     }
-
 }

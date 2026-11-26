@@ -1,24 +1,24 @@
-import {HtmlWriter} from "../writer";
-import {Stack} from "../../util/stack";
-import {HtmlStyle, HtmlStyleStore} from "../style";
-import {DomEffects} from "../effects";
+import { type MiniMessage } from "../../mini";
+import { Stack } from "../../util/stack";
+import { DomEffects } from "../effects";
+import { HtmlStyle, HtmlStyleStore } from "../style";
+import { HtmlWriter } from "../writer";
 
 //
 
 /**
- * Executed when the final tag of a DomHTMLWriter is closed.
- * Anticipates that the tag may become attached to a browser DOM,
- * then applies DOM effects if so.
+ * Executed when the final tag of a DomHTMLWriter is closed. Anticipates that the tag may become attached to a browser
+ * DOM, then applies DOM effects if so.
  */
-function applyDomEffects(element: ParentNode): void {
+function applyDomEffects(instance: MiniMessage, element: ParentNode): void {
     if (typeof window === "undefined") return;
 
-    const proceed = (() => {
+    const proceed = () => {
         const { ownerDocument } = element;
         if (!ownerDocument) return;
         if (window !== ownerDocument.defaultView) return;
-        DomEffects.apply(element);
-    });
+        DomEffects.apply(instance, element);
+    };
 
     if ("isConnected" in element && element.isConnected) {
         // Element is already connected
@@ -35,13 +35,14 @@ function applyDomEffects(element: ParentNode): void {
 }
 
 export class DomHTMLWriter implements HtmlWriter {
-
+    private readonly _instance: MiniMessage;
     private readonly _parent: ParentNode;
-    private readonly _stack: Stack<[ HTMLElement, HtmlStyleStore ]>;
+    private readonly _stack: Stack<[HTMLElement, HtmlStyleStore]>;
     private readonly _elementFactory: DomHTMLWriter.ElementFactory;
     private _styles: HtmlStyleStore;
 
-    constructor(parent: ParentNode, elementFactory: DomHTMLWriter.ElementFactory) {
+    constructor(instance: MiniMessage, parent: ParentNode, elementFactory: DomHTMLWriter.ElementFactory) {
+        this._instance = instance;
         this._parent = parent;
         this._stack = new Stack();
         this._elementFactory = elementFactory;
@@ -50,9 +51,13 @@ export class DomHTMLWriter implements HtmlWriter {
 
     //
 
+    get minimessage(): MiniMessage {
+        return this._instance;
+    }
+
     openTag(tagName: string): this {
         const element: HTMLElement = this._elementFactory(tagName as keyof HTMLElementTagNameMap);
-        this._stack.push([ element, { ...this._styles } ]);
+        this._stack.push([element, { ...this._styles }]);
         return this;
     }
 
@@ -75,7 +80,7 @@ export class DomHTMLWriter implements HtmlWriter {
         parent.appendChild(data[0]);
         this._styles = { ...data[1] };
 
-        if (domEffects) applyDomEffects(parent);
+        if (domEffects) applyDomEffects(this._instance, parent);
         return this;
     }
 
@@ -107,12 +112,8 @@ export class DomHTMLWriter implements HtmlWriter {
         if (ret === null) throw new Error(`No open tag`);
         return ret[0];
     }
-
 }
 
 export namespace DomHTMLWriter {
-
-    export type ElementFactory =
-        <K extends keyof HTMLElementTagNameMap>(tagName: K) => HTMLElementTagNameMap[K];
-
+    export type ElementFactory = <K extends keyof HTMLElementTagNameMap>(tagName: K) => HTMLElementTagNameMap[K];
 }

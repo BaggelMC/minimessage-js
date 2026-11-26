@@ -1,6 +1,6 @@
 {
   "name": "minimessage-js",
-  "version": "2.0.1",
+  "version": "2.1.2",
   "description": "Reimplementation of MiniMessage and associated Adventure APIs in TypeScript",
   "main": "dist/minimessage.cjs.js",
   "module": "dist/minimessage.esm.js",
@@ -22,10 +22,13 @@
     "email": "wasabithumbs@gmail.com"
   },
   "scripts": {
-    "build": "rollup -c",
-    "types": "tsc --build tsconfig.types.json",
-    "prepare": "npm run build && npm run types",
-    "test": "jest"
+    "build": "bun run --parallel build-types build-esm build-cjs build-umd",
+    "build-esm": "bun build ./src/index.ts --root ./src --outdir ./dist --format esm --entry-naming \"[dir]/minimessage.esm.js\"",
+    "build-cjs": "bun build ./src/index.ts --root ./src --outdir ./dist --format cjs --entry-naming \"[dir]/minimessage.cjs.js\"",
+    "build-umd": "bun build ./src/browser.ts --root ./src --outdir ./dist --format cjs --entry-naming \"[dir]/minimessage.umd.js\"",
+    "build-types": "tsc --build tsconfig.types.json",
+    "prepare": "bun run build",
+    "test": "bun test"
   },
   "keywords": [
     "minimessage",
@@ -35,19 +38,8 @@
     "html"
   ],
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
-    "jest": "^30.2.0",
-    "linkedom": "^0.18.12",
-    "rollup": "^4.54.0",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "ts-jest": "^29.4.6",
-    "tslib": "^2.8.1",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@minimessage-js/fetch-translations": "^2.0.1"
+    "@types/bun": "^1.4.3",
+    "linkedom": "^0.18.13",
+    "typescript": "^6.0.3"
   }
 }
